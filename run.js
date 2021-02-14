@@ -33,8 +33,9 @@ function getContents(weather) {
 
     if (weather.alerts && weather.alerts.length > 0) {
         let wa = weather.alerts[weather.alerts.length > 1 ? 1 : 0];
-        contents.push(`天氣警報 [${wa.event}]
-${wa.description}`);
+        let warning = `天氣警報 [${wa.event}]
+${wa.description}`;
+        contents.push(warning.slice(0, 360));
     }
 
     return contents;
