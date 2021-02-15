@@ -1,8 +1,39 @@
-const plurk = require('./lib/plurk');
 const weather = require('./lib/weather');
+const ptt = require('./lib/ptt');
 const util = require('util');
 
-function getContents(weather) {
+let plurk = require('./lib/plurk');
+if (process.argv.length === 4 && process.argv[3] === 'debug') {
+    plurk = {
+        callAPI: (url, param, cb) => {
+            cb(null, {
+                plurk_id: 'DEBUG',
+                qualifier_translated: '',
+                content: param.content
+            });
+        }
+    };
+}
+
+function postPlurk(content, qualifier) {
+    return new Promise((resolve, reject) => {
+            plurk.callAPI('/APP/Timeline/plurkAdd', {
+            content,
+            qualifier: qualifier || 'says',
+            lang: 'tr_ch',
+        }, (err, data) => {
+            if (err) {
+                console.log('ERROR', err);
+                reject(err);
+            } else {
+                console.log('======== OK', data.plurk_id, data.qualifier_translated, data.content);
+                resolve(data);
+            }
+        });
+    });
+}
+
+function getWeatherContents(weather) {
     const todayWeather = weather.daily[0];
     const todayWeatherDescription = todayWeather.weather.map((w) => {
         return w.description;
@@ -29,7 +60,7 @@ function getContents(weather) {
         helloText = '晚安';
     }
     helloText += '！';
-    contents.push(helloText + weatherStr);
+    contents.push(helloText + weatherStr.trim());
 
     if (weather.alerts && weather.alerts.length > 0) {
         let wa = weather.alerts[weather.alerts.length > 1 ? 1 : 0];
@@ -41,33 +72,45 @@ ${wa.description}`;
     return contents;
 }
 
-weather.getWeatherAmsterdam((weatherData) => {
-    //console.log(util.inspect(weatherData, {showHidden: false, depth: null}))
-    const contents = getContents(weatherData);
-    //console.log(content); return;
-    plurk.callAPI('/APP/Timeline/plurkAdd', {
-        content: contents[0],
-        qualifier: 'says',
-        lang: 'tr_ch',
-    }, (err, data) => {
-        if (err) {
-            console.log('Error0', err);
-        } else {
-            console.log('OK0', data.plurk_id, data.content);
-        }
-        if (contents.length > 1) {
-            plurk.callAPI('/APP/Timeline/plurkAdd', {
-                content: contents[1],
-                qualifier: 'says',
-                lang: 'tr_ch',
-            }, (err, data) => {
-                if (err) {
-                    console.log('Error1', err);
-                } else {
-                    console.log('OK1', data.plurk_id, data.content);
-                }
-            });
+function plurkWeather() {
+    weather.getWeatherAmsterdam((weatherData) => {
+        //console.log(util.inspect(weatherData, {showHidden: false, depth: null}))
+        const contents = getWeatherContents(weatherData);
+        postPlurk(contents[0]).then(() => {
+            if (contents.length > 1) {
+                postPlurk(contents[1]);
+            }
+        });
+    });
+}
+
+function plurkPTT() {
+    ptt.getHotArticles(10, (data) => {
+        if (data.length > 0) {
+            const item = data[0];
+            postPlurk(item.title + ' https://www.ptt.cc' + item.url, item.type === '問卦' ? 'ask' : 'shares');
         }
     });
-});
+}
 
+const taskRounter = {
+    all: function() {
+        Object.keys(this).filter(task => task !== 'all').forEach((task) => {
+            console.log('Invoke task', task);
+            taskRounter[task]();
+        });
+    },
+    weather: function() {
+        plurkWeather();
+    },
+    ptt: function() {
+        plurkPTT();
+    },
+};
+
+if (process.argv.length < 3 || (!taskRounter[process.argv[2]])) {
+    console.error('Usage:', process.argv[0], process.argv[1], 'all|weather|ptt', '[debug]');
+    return -1;
+}
+
+taskRounter[process.argv[2]]();
