@@ -111,11 +111,11 @@ function plurkPTT() {
     });
 }
 
-const taskRounter = {
+const taskRouter = {
     all: function() {
         Object.keys(this).filter(task => task !== 'all').forEach((task) => {
             console.log('Invoke task', task);
-            taskRounter[task]();
+            taskRouter[task]();
         });
     },
     weather: function() {
@@ -133,9 +133,9 @@ const taskRounter = {
     },
 };
 
-if (process.argv.length < 3 || (!taskRounter[process.argv[2]])) {
-    console.error('Usage:', process.argv[0], process.argv[1], Object.keys(taskRounter).join('|'), '[debug]');
+if (process.argv.length < 3 || (!taskRouter[process.argv[2]])) {
+    console.error('Usage:', process.argv[0], process.argv[1], Object.keys(taskRouter).join('|'), '[debug]');
     return -1;
 }
 
-taskRounter[process.argv[2]]();
+taskRouter[process.argv[2]]();
