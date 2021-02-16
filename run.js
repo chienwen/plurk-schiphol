@@ -1,6 +1,7 @@
 const weather = require('./lib/weather');
 const ptt = require('./lib/ptt');
-const util = require('util');
+const dedupPost = require('./lib/dedupPost');
+//const util = require('util');
 
 let plurk = require('./lib/plurk');
 if (process.argv.length === 4 && process.argv[3] === 'debug') {
@@ -76,20 +77,25 @@ function plurkWeather() {
     weather.getWeatherAmsterdam((weatherData) => {
         //console.log(util.inspect(weatherData, {showHidden: false, depth: null}))
         const contents = getWeatherContents(weatherData);
-        postPlurk(contents[0]).then(() => {
-            if (contents.length > 1) {
-                postPlurk(contents[1]);
-            }
-        });
+        postPlurk(contents[0]);
+        if (contents.length > 1) {
+            postPlurk(contents[1]);
+        }
     });
 }
 
 function plurkPTT() {
     ptt.getHotArticles(10, (data) => {
-        if (data.length > 0) {
-            const item = data[0];
-            postPlurk(item.title + ' https://www.ptt.cc' + item.url, item.type === '問卦' ? 'ask' : 'shares');
+        dedupPost.init();
+        for (let i = 0; i < data.length; i++) {
+            let item = data[i];
+            if (!dedupPost.wasPosted(item.title)) {
+                postPlurk(item.title + ' https://www.ptt.cc' + item.url, item.type === '問卦' ? 'ask' : 'shares');
+                dedupPost.add(item.title);
+                break;
+            }
         }
+        dedupPost.finish();
     });
 }
 
