@@ -90,7 +90,7 @@ function plurkPTT() {
         for (let i = 0; i < data.length; i++) {
             let item = data[i];
             if (!dedupPost.wasPosted(item.title)) {
-                postPlurk(item.title + ' https://www.ptt.cc' + item.url, item.type === '問卦' ? 'ask' : 'shares');
+                postPlurk('https://www.ptt.cc' + item.url + ' (' + item.title + ')', item.type === '問卦' ? 'wonders' : 'shares');
                 dedupPost.add(item.title);
                 break;
             }
