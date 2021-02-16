@@ -10,7 +10,7 @@ if (process.argv.length === 4 && process.argv[3] === 'debug') {
         callAPI: (url, param, cb) => {
             cb(null, {
                 plurk_id: 'DEBUG',
-                qualifier_translated: '',
+                qualifier_translated: param.qualifier,
                 content: param.content
             });
         }
