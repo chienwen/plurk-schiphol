@@ -87,10 +87,21 @@ function plurkWeather() {
 function plurkPTT() {
     ptt.getHotArticles(10, (data) => {
         dedupPost.init();
+        function getPTTQualifier(type, title) {
+            if (type === '問卦') {
+                if (title.match(/？|\?/)) {
+                    return 'asks';
+                } else {
+                    return 'wonders';
+                }
+            } else {
+                return 'shares';
+            }
+        }
         for (let i = 0; i < data.length; i++) {
             let item = data[i];
             if (!dedupPost.wasPosted(item.title)) {
-                postPlurk('https://www.ptt.cc' + item.url + ' (' + item.title + ')', item.type === '問卦' ? 'wonders' : 'shares');
+                postPlurk('https://www.ptt.cc' + item.url + ' (' + item.title + ')', getPTTQualifier(item.type, item.title));
                 dedupPost.add(item.title);
                 break;
             }
