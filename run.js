@@ -47,11 +47,24 @@ function getWeatherContents(weather) {
 
     const contents = [];
 
+    const displayInt = {
+        todayMax: todayWeather.temp.max,
+        todayMin: todayWeather.temp.min,
+        feelDay: todayWeather.feels_like.day,
+        feelNight: todayWeather.feels_like.night,
+        currentTemp: currentWeather.temp,
+        currentFeel: currentWeather.feels_like,
+    };
+
+    Object.keys(displayInt).forEach((key) => {
+        displayInt[key] = Math.round(displayInt[key]);
+    });
+
     let weatherStr = `阿姆斯特丹今天天氣${todayWeatherDescription}
-最高溫 ${todayWeather.temp.max}°C，最低溫 ${todayWeather.temp.min}°C
-體感溫度白天 ${todayWeather.feels_like.day}°C，晚上 ${todayWeather.feels_like.night}°C
+最高溫 ${displayInt.todayMax}°C，最低溫 ${displayInt.todayMin}°C
+體感溫度白天 ${displayInt.feelDay}°C，晚上 ${displayInt.feelNight}°C
 風速 ${todayWeather.wind_speed}m/s，日落時間 ${sunsetTime}
-現在氣溫 ${currentWeather.temp}°C，體感溫度 ${currentWeather.feels_like}°C
+現在氣溫 ${displayInt.currentTemp}°C，體感溫度 ${displayInt.currentFeel}°C
 `;
 
     const localHour = (new Date((new Date).getTime() + weather.timezone_offset * 1000)).getUTCHours();
