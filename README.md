@@ -12,5 +12,5 @@ OPEN_WEATHER_MAP_API_KEY=
 Run
 
 ```
-npm run plurk all|weather|ptt [debug]
+npm run plurk all|weather|ptt|covid [debug]
 ```
