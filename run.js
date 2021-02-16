@@ -1,4 +1,5 @@
 const weather = require('./lib/weather');
+const windSpeedTrans = require('./lib/windSpeedTrans');
 const ptt = require('./lib/ptt');
 const covid = require('./lib/covid');
 const dedupPost = require('./lib/dedupPost');
@@ -40,9 +41,26 @@ function getWeatherContents(weather) {
     const todayWeatherDescription = todayWeather.weather.map((w) => {
         return w.description;
     }).join('、');
-    const sunsetDateObj = new Date((todayWeather.sunset + weather.timezone_offset) * 1000);
-    const sunsetTimeMinute = sunsetDateObj.getUTCMinutes();
-    const sunsetTime = sunsetDateObj.getUTCHours() + ':' + (sunsetTimeMinute < 10 ? '0' + sunsetTimeMinute : sunsetTimeMinute);
+
+    const getLocalTime = function (timestamp) {
+        const dataObj = new Date((timestamp + weather.timezone_offset) * 1000);
+        const minute = dataObj.getUTCMinutes();
+        return dataObj.getUTCHours() + ':' + (minute < 10 ? '0' + minute : minute);
+    };
+
+    const getWindDirectionName = function (deg) {
+        const mapping = ['北', '東北', '東', '東南', '南', '西南', '西', '西北'];
+        let base = 22.5;
+        for (let i = 0 ; i < 9; i++) {
+            if (deg < base) {
+                return mapping[i % mapping.length];
+            }
+            base += 45;
+        }
+    };
+
+    const sunsetTime = getLocalTime(todayWeather.sunset);
+    const sunriseTime = getLocalTime(todayWeather.sunrise);
     const currentWeather = weather.current;
 
     const contents = [];
@@ -60,11 +78,16 @@ function getWeatherContents(weather) {
         displayInt[key] = Math.round(displayInt[key]);
     });
 
+    const wind = windSpeedTrans(todayWeather.wind_speed);
+    const typhoon = wind.typhoon ? '(' + wind.typhoon.name + '颱風)' : '';
+    const windDir = getWindDirectionName(todayWeather.wind_deg) + '風';
+
     let weatherStr = `阿姆斯特丹今天天氣${todayWeatherDescription}
-最高溫 ${displayInt.todayMax}°C，最低溫 ${displayInt.todayMin}°C
-體感溫度白天 ${displayInt.feelDay}°C，晚上 ${displayInt.feelNight}°C
-風速 ${todayWeather.wind_speed}m/s，日落時間 ${sunsetTime}
-現在氣溫 ${displayInt.currentTemp}°C，體感溫度 ${displayInt.currentFeel}°C
+高溫 ${displayInt.todayMax}°C 低溫 ${displayInt.todayMin}°C 濕度 ${todayWeather.humidity}%
+體感溫度白天 ${displayInt.feelDay}°C 晚上 ${displayInt.feelNight}°C
+${wind.name}風${wind.rank}級 ${windDir} ${todayWeather.wind_speed} 公尺/秒 ${typhoon}
+日出時間 ${sunriseTime} 日落時間 ${sunsetTime}
+現在氣溫 ${displayInt.currentTemp}°C 體感溫度 ${displayInt.currentFeel}°C
 `;
 
     const localHour = (new Date((new Date).getTime() + weather.timezone_offset * 1000)).getUTCHours();
