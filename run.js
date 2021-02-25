@@ -2,6 +2,7 @@ const weather = require('./lib/weather');
 const windSpeedTrans = require('./lib/windSpeedTrans');
 const ptt = require('./lib/ptt');
 const covid = require('./lib/covid');
+const goodSentence = require('./lib/goodSentence');
 const dedupPost = require('./lib/dedupPost');
 //const util = require('util');
 
@@ -165,6 +166,14 @@ const taskRouter = {
             postPlurk('荷蘭昨天新增中國肺炎 ' + covidData.NewConfirmed + ' 例', 'has');
         }).catch((err) => {
             console.log('Unable to fetch covid info', err);
+        });
+    },
+    sentence: function() {
+        goodSentence((data) => {
+            if (data) {
+                const from = data.from ? `\n～*${data.from}*` : '';
+                postPlurk(`${data.text}${from}`, 'thinks');
+            }
         });
     },
 };
