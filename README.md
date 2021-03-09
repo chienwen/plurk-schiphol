@@ -1,4 +1,4 @@
-With `.npmrc`
+With `config.ini`
 
 ```
 PLURK_CONSUMER_KEY=
