@@ -14,5 +14,5 @@ CHIENWEN_SECRETARY_API_AUTH=
 Run
 
 ```
-npm run plurk all|weather|ptt|covid|sentence [debug]
+npm run plurk all|weather|ptt|covid|sentence|news [debug]
 ```
