@@ -3,6 +3,7 @@ const windSpeedTrans = require('./lib/windSpeedTrans');
 const ptt = require('./lib/ptt');
 const covid = require('./lib/covid');
 const goodSentence = require('./lib/goodSentence');
+const news = require('./lib/news');
 const dedupPost = require('./lib/dedupPost');
 //const util = require('util');
 
@@ -173,6 +174,41 @@ const taskRouter = {
             if (data) {
                 const from = data.from ? `\n～*${data.from}*` : '';
                 postPlurk(`${data.text}${from}`, 'thinks');
+            }
+        });
+    },
+    news: function() {
+        news.getNews((data) => {
+            const now = new Date();
+            const nowts = now.getTime();
+            data = data.filter((item) => {
+                if (item.title && item.title.match(/荷蘭|歐盟/) 
+                    && nowts - item.time.getTime() < 86400000) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }).map((item) => {
+                item.title = item.title.replace('[國際]', '').trim();
+                return item;
+            });
+            if (data.length > 0) {
+                for (let i = 0; i < data.length; i++) {
+                    let j = Math.floor(data.length * Math.random());
+                    let temp = data[i];
+                    data[i] = data[j];
+                    data[j] = temp;
+                }
+                dedupPost.init();
+                for (let i = 0; i < data.length; i++) {
+                    let item = data[i];
+                    if (!dedupPost.wasPosted(item.title)) {
+                        dedupPost.add(item.title);
+                        postPlurk(item.url + ' (' + item.title + ')', 'shares');
+                        break;
+                    }
+                }
+                dedupPost.finish();
             }
         });
     },
