@@ -164,9 +164,27 @@ const taskRouter = {
     },
     covid: function() {
         covid('netherlands').then((covidData) => {
-            postPlurk('荷蘭昨天新增中國肺炎 ' + covidData.NewConfirmed + ' 例', 'has');
+            const sentences = ['荷蘭昨天新增中國肺炎 ' + covidData.NewConfirmed + ' 例'];
+            covid('taiwan').then((covidDataTw) => {
+                let sentenceTaiwan = '台灣昨天新增中國肺炎 ' + covidDataTw.NewConfirmed + ' 例';
+                if (covidDataTw.TWNewConfirmedLocal || covidDataTw.TWNewConfirmedExternal) {
+                    const twDetail = [];
+                    if (covidDataTw.TWNewConfirmedLocal) {
+                        twDetail.push('本土' + covidDataTw.TWNewConfirmedLocal);
+                    }
+                    if (covidDataTw.TWNewConfirmedExternal) {
+                        twDetail.push('境外' + covidDataTw.TWNewConfirmedExternal);
+                    }
+                    sentenceTaiwan += '（' + twDetail.join('、') + '）';
+                }
+                sentences.push(sentenceTaiwan);
+                postPlurk(sentences.join("\n"), 'has');
+            }).catch((err) => {
+                console.log('Unable to fetch covid info from Taiwan', err);
+                postPlurk(sentences.join("\n"), 'has');
+            });
         }).catch((err) => {
-            console.log('Unable to fetch covid info', err);
+            console.log('Unable to fetch covid info from Netherlands', err);
         });
     },
     sentence: function() {
