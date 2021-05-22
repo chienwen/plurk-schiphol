@@ -166,8 +166,9 @@ const taskRouter = {
         covid('netherlands').then((covidData) => {
             const sentences = ['荷蘭昨天新增中國肺炎 ' + covidData.NewConfirmed + ' 例'];
             covid('taiwan').then((covidDataTw) => {
-                let sentenceTaiwan = '台灣昨天新增中國肺炎 ' + covidDataTw.NewConfirmed + ' 例';
+                let sentenceTaiwan;
                 if (covidDataTw.TWNewConfirmedLocal || covidDataTw.TWNewConfirmedExternal) {
+                    sentenceTaiwan = '台灣昨天新增中國肺炎 ' + covidDataTw.NewConfirmed + ' 例';
                     const twDetail = [];
                     if (covidDataTw.TWNewConfirmedLocal) {
                         twDetail.push('本土' + covidDataTw.TWNewConfirmedLocal);
@@ -176,6 +177,8 @@ const taskRouter = {
                         twDetail.push('境外' + covidDataTw.TWNewConfirmedExternal);
                     }
                     sentenceTaiwan += '（' + twDetail.join('、') + '）';
+                } else if (covidDataTw.FallbackRawTitle) {
+                    sentenceTaiwan = '台灣：' + covidDataTw.FallbackRawTitle;
                 }
                 sentences.push(sentenceTaiwan);
                 postPlurk(sentences.join("\n"), 'has');
