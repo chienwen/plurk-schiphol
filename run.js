@@ -5,7 +5,7 @@ const covid = require('./lib/covid');
 const goodSentence = require('./lib/goodSentence');
 const news = require('./lib/news');
 const dedupPost = require('./lib/dedupPost');
-//const util = require('util');
+const util = require('util');
 
 let plurk = require('./lib/plurk');
 if (process.argv.length === 4 && process.argv[3] === 'debug') {
@@ -114,7 +114,7 @@ ${wa.description}`;
 
 function plurkWeather() {
     weather.getWeatherAmsterdam((weatherData) => {
-        //console.log(util.inspect(weatherData, {showHidden: false, depth: null}))
+        console.log(util.inspect(weatherData, {showHidden: false, depth: null}))
         const contents = getWeatherContents(weatherData);
         postPlurk(contents[0]);
         if (contents.length > 1) {
